@@ -5,23 +5,24 @@ import * as React from 'react'
 import ConfettiGenerator from 'confetti-js'
 
 function Confetti() {
-  // 🐶 utilise useRef pour créer un référence 'confettiRef' vers le canvas de confetti
-   const confettiRef = React.useRef()
-
-  // 🐶 utilise useEffect pour initiliser le générateur de confetti avec les bons paramètres
-  // 🤖 Initialisation :
+  const confettiRef = React.useRef()
+  const refSetting = React.useRef({
+    clock: 100,
+    animate: true,
+    max: 200,
+  })
   React.useEffect(() => {
-    if(!confettiRef.current){
+    if (!confettiRef.current) {
       return
     }
-    const confettiSettings = { target: confettiRef.current}
+    const confettiSettings = {...refSetting.current, target: confettiRef.current }
     const confetti = new ConfettiGenerator(confettiSettings)
     confetti.render()
-    
+
     return () => confetti.clear()
   })
 
-  return <canvas  ref={confettiRef} />
+  return <canvas ref={confettiRef} />
 }
 
 function App() {
