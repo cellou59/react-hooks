@@ -1,38 +1,54 @@
 // useEffect HTTP Avancée
 // http://localhost:3000/alone/exercise/08.js
 
-/* eslint-disable no-unused-vars */
-import React from 'react'
-
-// 🐶 Tu vas avoir besoin d'appeler l'API Marvel et d'utiliser 'MarvelPersoView'
-// pour afficher le detail d'un personnage Marvel.
-// importe donc 'fetchMarvel' 'MarvelPersoView' depuis '../marvel'
-import {MarvelSearchForm} from '../marvel'
+import * as React from 'react'
+import {ErrorBoundary} from 'react-error-boundary'
+import {fetchMarvel, MarvelPersoView, MarvelSearchForm} from '../marvel'
 import '../08-styles.css'
 
 function MarvelDetails({marvelName}) {
-  // 🐶 Créé un state pour le personnage marvel
+  const [marvel, setMarvel] = React.useState()
+  const [error, setError] = React.useState(null)
 
-  // 🐶 React.useEffect : utilise React.useEffect pour appeler l'API marvel quand le prop 'marvelName' change
-  // Attention aux dependances de useEffect []
-  // N'appelle pas l'API marvel si 'marvelName' n'est pas renseigné
-  // 🤖 if (!marvelName) { return }
-  // 🐶 Avant d'appeler `fetchMarvel` met le state marvel à null (nettoyage du précedent Marvel)
-  // 🤖 Appelle `fetchMarvel` :
-  //    fetchMarvel(marvelName)
-  //    .then(marvel => /* met à jour le state marvel ici */)
+  React.useEffect(() => {
+    console.log('React.useEffect', marvelName)
+    if (!marvelName) {
+      return
+    }
+    setMarvel(null)
+    fetchMarvel(marvelName)
+      .then(marvel => setMarvel(marvel))
+      .catch(error => setError(error))
+  }, [marvelName])
 
-  // 🐶 retourne (render) 3 choses differentes en fonctions du state et prop
-  //  - 'Entrer un nom de personnage Marvel' si `marvelName` n'est pas renseigné
-  //  - 'chargement ...' si `marvel` n'est pas renseigné
-  //  - <MarvelPersoView marvel={marvel} sinon
+  if (error) {
+    // this will be handled by an error boundary
+    throw error
+  }
+  if (!marvelName) {
+    return 'Entrer un nom de personnage Marvel'
+  }
+  if (!marvel) {
+    return 'chargement ...'
+  }
+  return (
+    <div>
+      <MarvelPersoView marvel={marvel} />
+    </div>
+  )
+}
 
-  return null
+function ErrorDisplay({error}) {
+  return (
+    <div style={{color: 'red'}}>
+      Une erreur est survenue lors de la recherche de Marvel detail :{' '}
+      <pre style={{color: 'grey'}}> Détail : {error.message}</pre>
+    </div>
+  )
 }
 
 function App() {
   const [marvelName, setMarvelName] = React.useState('')
-
   const handleSearch = name => {
     setMarvelName(name)
   }
@@ -40,7 +56,9 @@ function App() {
     <div className="marvel-app">
       <MarvelSearchForm marvelName={marvelName} onSearch={handleSearch} />
       <div className="marvel-detail">
-        <MarvelDetails marvelName={marvelName} />
+        <ErrorBoundary key={marvelName} FallbackComponent={ErrorDisplay}>
+          <MarvelDetails marvelName={marvelName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
